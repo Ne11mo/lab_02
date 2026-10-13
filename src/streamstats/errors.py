@@ -1,4 +1,4 @@
-class  StreamStatsError(Exception):
+class StreamStatsError(Exception):
     """Base Stream Stats Error"""
 
 
@@ -14,5 +14,9 @@ class InvalidEventError(StreamStatsError):
     pass
 
 
-class ConfigurationCLIError(StreamStatsError):
+class CLIConfigurationError(StreamStatsError):
+    pass
+
+
+class InvalidFilePathError(StreamStatsError):
     pass
