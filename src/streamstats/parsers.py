@@ -38,7 +38,7 @@ def start_csv_parser(
                 except StreamStatsError:
                     if is_skip_invalid:
                         # лог выводит warning добавить
-                        logger.warning()
+                        logger.warning("Пропущена строка: %d", csv_reader.line_num)
                         continue
                     else:
                         raise
