@@ -8,16 +8,19 @@ from typing import Any, Generator, Iterator
 from src.streamstats.models import Event
 
 from .errors import InvalidEventError, InvalidFormatError, StreamStatsError
-from .models import AVAILABLE_FIELDS, check_and_create_event_parser
+from .models import AVAILABLE_FIELDS, ParserStatistics, check_and_create_event_parser
 
 logger = logging.getLogger(__name__)
 
 
 def start_csv_parser(
-    input_data: Iterable[Path], is_skip_invalid: bool
+    input_data: Iterable[Path],
+    is_skip_invalid: bool,
+    parser_statistics: ParserStatistics,
 ) -> Iterator[Event] | None:
     """
     This function parses the input csv files
+    :param parser_statistics:
     :param input_data
     :param is_skip_invalid
     :return Generator[Event, Any, None] | None
@@ -34,7 +37,7 @@ def start_csv_parser(
                     f"В файле №{file_number} ({path}) в строке 1 неверный csv заголовок: {e}"
                 )
 
-            if fieldnames is None:  # файл пустой
+            if fieldnames is None:  # нет заголовков
                 continue
 
             list_of_empty_fields = []
@@ -53,6 +56,7 @@ def start_csv_parser(
                 except StreamStatsError:
                     if is_skip_invalid:
                         logger.warning("Пропущена строка: %d", csv_reader.line_num)
+                        parser_statistics.skipped_lines += 1
                         continue
                     else:
                         raise
@@ -60,7 +64,9 @@ def start_csv_parser(
 
 
 def start_jsonl_parser(
-    input_data: Iterable[Path], is_skip_invalid: bool
+    input_data: Iterable[Path],
+    is_skip_invalid: bool,
+    parser_statistics: ParserStatistics,
 ) -> Iterator[Event] | None:
     for path in input_data:
         with path.open(encoding="utf-8") as jsonl_file:
@@ -78,6 +84,7 @@ def start_jsonl_parser(
                 except StreamStatsError:
                     if is_skip_invalid:
                         logger.warning("Пропущена строка: %d", line_number)
+                        parser_statistics.skipped_lines += 1
                         continue
                     else:
                         raise
@@ -85,10 +92,14 @@ def start_jsonl_parser(
 
 
 def start_parser_of_input_data(
-    input_data: Iterable[Path], format_of_input_data: str, is_skip_invalid: bool
+    input_data: Iterable[Path],
+    format_of_input_data: str,
+    is_skip_invalid: bool,
+    parser_statistics: ParserStatistics,
 ) -> Generator[Event, Any, None] | None:
     """
     This function detected which parser the program need to use
+    :param parser_statistics:
     :param input_data:
     :param format_of_input_data:
     :param is_skip_invalid:
@@ -96,8 +107,8 @@ def start_parser_of_input_data(
     """
 
     if format_of_input_data == "csv":
-        return start_csv_parser(input_data, is_skip_invalid)
+        return start_csv_parser(input_data, is_skip_invalid, parser_statistics)
     if format_of_input_data == "jsonl":
-        return start_jsonl_parser(input_data, is_skip_invalid)
+        return start_jsonl_parser(input_data, is_skip_invalid, parser_statistics)
 
     raise InvalidFormatError(f"Неподдерживаемый формат: {format_of_input_data}")

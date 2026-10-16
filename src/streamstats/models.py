@@ -31,6 +31,11 @@ class Event:
     message: str
 
 
+@dataclass
+class ParserStatistics:
+    skipped_lines = 0
+
+
 def check_input_paths_of_files(input_data_files: Iterable[Path]) -> None:
     for file_path in input_data_files:
         if not file_path.is_file():
