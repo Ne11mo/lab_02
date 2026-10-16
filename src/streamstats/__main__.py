@@ -47,6 +47,11 @@ def create_parsers_for_cli() -> argparse.ArgumentParser:
 
 
 def configure_logging() -> None:
+    """
+    Configure root logger
+    input: None
+    output: None
+    """
     logging.basicConfig(
         level=logging.WARNING, format="{levelname}: {message}", style="{"
     )
@@ -58,8 +63,15 @@ def main() -> int:
     print(args)
 
     try:
-        # validate_data(args)
-        # run_analyze(args)
+        """
+        check_input_paths_of_files(args.input_data_files)
+        events = start_parser_of_input_data(
+            args.input_data_files, args.format_input_data, args.skip_invalid
+        )
+
+        report = start_analyze(events)
+        make_report(report, args.output_data_file)
+        """
         sys.exit(0)
     except StreamStatsError as e:
         print(f"Ошибка: {e}", file=sys.stderr)
