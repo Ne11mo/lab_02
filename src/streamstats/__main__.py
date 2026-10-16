@@ -10,7 +10,7 @@ def create_parsers_for_cli() -> argparse.ArgumentParser:
     """
     This function creates parsers for command line interface with argparse library
     Input: None
-    Output: parser for command line interface
+    :return parser for command line interface
     """
 
     parser = argparse.ArgumentParser(
@@ -75,6 +75,12 @@ def main() -> int:
         sys.exit(0)
     except StreamStatsError as e:
         print(f"Ошибка: {e}", file=sys.stderr)
+        sys.exit(2)
+    except OSError as e:
+        print(f"Ошибка ввода-вывода: {e}", file=sys.stderr)
+        sys.exit(2)
+    except UnicodeDecodeError as e:
+        print(f"Файл не в кодировке UTF-8: {e}", file=sys.stderr)
         sys.exit(2)
 
 
