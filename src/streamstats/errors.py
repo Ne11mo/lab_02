@@ -16,7 +16,3 @@ class InvalidEventError(StreamStatsError):
 
 class CLIConfigurationError(StreamStatsError):
     pass
-
-
-class InvalidFilePathError(StreamStatsError):
-    pass

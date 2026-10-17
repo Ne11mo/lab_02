@@ -3,12 +3,15 @@ import json
 import logging
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Generator, Iterator
-
-from src.streamstats.models import Event
+from typing import Iterator
 
 from .errors import InvalidEventError, InvalidFormatError, StreamStatsError
-from .models import AVAILABLE_FIELDS, ParserStatistics, check_and_create_event_parser
+from .models import (
+    AVAILABLE_FIELDS,
+    Event,
+    ParserStatistics,
+    check_and_create_event_parser,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -17,13 +20,13 @@ def start_csv_parser(
     input_data: Iterable[Path],
     is_skip_invalid: bool,
     parser_statistics: ParserStatistics,
-) -> Iterator[Event] | None:
+) -> Iterator[Event]:
     """
     This function parses the input csv files
     :param parser_statistics:
     :param input_data
     :param is_skip_invalid
-    :return Generator[Event, Any, None] | None
+    :return Iterator[Event]
     """
 
     for file_number, path in enumerate(input_data, start=1):
@@ -34,7 +37,7 @@ def start_csv_parser(
                 fieldnames = csv_reader.fieldnames
             except csv.Error as e:
                 raise InvalidEventError(
-                    f"В файле №{file_number} ({path}) в строке 1 неверный csv заголовок: {e}"
+                    f"Ошибка: в файле {file_number} в строке 1 неверный csv заголовок - {e}"
                 )
 
             if fieldnames is None:  # нет заголовков
@@ -47,15 +50,28 @@ def start_csv_parser(
 
             if len(list_of_empty_fields) != 0:
                 raise InvalidEventError(
-                    f"В файле №{file_number} ({path}) отсутствуют обязательные поля: {list_of_empty_fields}"
+                    f"Ошибка: в файле {file_number} отсутствуют обязательные поля: {list_of_empty_fields}"
                 )
 
-            for row in csv_reader:
+            rows = iter(csv_reader)
+            while True:
                 try:
-                    event = check_and_create_event_parser(row)
+                    try:
+                        row = next(rows)
+                    except csv.Error as e:
+                        raise InvalidEventError(
+                            f"Ошибка: в файле {file_number} в строке {csv_reader.line_num} некорректный csv - {e}"
+                        )
+                    event = check_and_create_event_parser(
+                        row, file_number, csv_reader.line_num
+                    )
+                except StopIteration:
+                    break
                 except StreamStatsError:
                     if is_skip_invalid:
-                        logger.warning("Пропущена строка: %d", csv_reader.line_num)
+                        logger.warning(
+                            f" В файле {file_number} пропущена строка {csv_reader.line_num}"
+                        )
                         parser_statistics.skipped_lines += 1
                         continue
                     else:
@@ -67,23 +83,38 @@ def start_jsonl_parser(
     input_data: Iterable[Path],
     is_skip_invalid: bool,
     parser_statistics: ParserStatistics,
-) -> Iterator[Event] | None:
-    for path in input_data:
+) -> Iterator[Event]:
+    """
+    This function parses the input jsonl files
+    :param input_data:
+    :param is_skip_invalid:
+    :param parser_statistics:
+    :return Iterator[Event]
+    """
+    for file_number, path in enumerate(input_data, start=1):
         with path.open(encoding="utf-8") as jsonl_file:
             for line_number, line in enumerate(jsonl_file, start=1):
                 try:
                     try:
                         line = json.loads(line)
                     except json.JSONDecodeError:
-                        raise InvalidEventError("Некорректный jsonl ")
+                        raise InvalidEventError(
+                            f"Ошибка: в файле {file_number} в строке {line_number} некорректный jsonl "
+                        )
 
                     if not isinstance(line, dict):
-                        raise InvalidEventError("Ожидался jsonl объект")
+                        raise InvalidEventError(
+                            f"Ошибка: в файле {file_number} в строке {line_number} ожидался jsonl объект"
+                        )
 
-                    event = check_and_create_event_parser(line)
+                    event = check_and_create_event_parser(
+                        line, file_number, line_number
+                    )
                 except StreamStatsError:
                     if is_skip_invalid:
-                        logger.warning("Пропущена строка: %d", line_number)
+                        logger.warning(
+                            f"В файле {file_number} пропущена строка {line_number}"
+                        )
                         parser_statistics.skipped_lines += 1
                         continue
                     else:
@@ -96,14 +127,14 @@ def start_parser_of_input_data(
     format_of_input_data: str,
     is_skip_invalid: bool,
     parser_statistics: ParserStatistics,
-) -> Generator[Event, Any, None] | None:
+) -> Iterator[Event]:
     """
     This function detected which parser the program need to use
     :param parser_statistics:
     :param input_data:
     :param format_of_input_data:
     :param is_skip_invalid:
-    :return Generator[Event, Any, None] | None
+    :return Iterator[Event]
     """
 
     if format_of_input_data == "csv":

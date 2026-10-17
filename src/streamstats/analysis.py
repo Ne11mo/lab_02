@@ -1,23 +1,25 @@
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable
 from typing import Any
 
-from .models import Event, Level
+from .models import Event, Level, ParserStatistics
 
 
-def make_top_5_source(errors_sources: Mapping[str, int]) -> Mapping[str, int]:
+def make_top_5_source(errors_sources: dict[str, int]) -> dict[str, int]:
     top_5_source = []
     for error_source in errors_sources:
         top_5_source.append((error_source, errors_sources[error_source]))
 
-    top_5_source.sort(key=lambda x: -x[1])
+    top_5_source.sort(key=lambda x: (-x[1], x[0]))
 
     result = {}
-    for i in range(5):
+    for i in range(min(5, len(top_5_source))):
         result[top_5_source[i][0]] = top_5_source[i][1]
     return result
 
 
-def start_analyze(events: Iterable[Event], parser_statistics) -> dict[str, Any]:
+def start_analyze(
+    events: Iterable[Event], parser_statistics: ParserStatistics
+) -> dict[str, Any]:
     statistics: dict = {
         "all_events_count": 0,
         "DEBUG": 0,
@@ -29,11 +31,6 @@ def start_analyze(events: Iterable[Event], parser_statistics) -> dict[str, Any]:
     sources = {}
     errors_sources = {}
     min_timestamp, max_timestamp = None, None
-    """
-    добавляем количество событий каждого источника
-    добавляем и сортируем топ 5 источников ошибок уровня error, critical
-    Первая и последняя временная метка
-    """
     for event in events:
         statistics["all_events_count"] += 1
         statistics[event.level.value] += 1
@@ -42,8 +39,11 @@ def start_analyze(events: Iterable[Event], parser_statistics) -> dict[str, Any]:
             sources[event.source] = 0
         sources[event.source] += 1
 
-        if event.level == Level.WARNING or event.level == Level.WARNING:
-            errors_sources[event.level.value] += 1
+        if event.level == Level.ERROR or event.level == Level.CRITICAL:
+            if event.source not in errors_sources:
+                errors_sources[event.source] = 0
+
+            errors_sources[event.source] += 1
 
         if min_timestamp is None:
             min_timestamp = event.timestamp
@@ -58,10 +58,16 @@ def start_analyze(events: Iterable[Event], parser_statistics) -> dict[str, Any]:
     statistics["events_from_every_sources"] = sources
 
     top_5_source = make_top_5_source(errors_sources)
-    statistics["count_of_events_from_every_source"] = top_5_source
+    statistics["top_error_sources"] = top_5_source
 
-    statistics["min_timestamp"] = min_timestamp
-    statistics["max_timestamp"] = max_timestamp
+    if min_timestamp is None:
+        statistics["min_timestamp"] = None
+    else:
+        statistics["min_timestamp"] = min_timestamp.isoformat()
+    if max_timestamp is None:
+        statistics["max_timestamp"] = None
+    else:
+        statistics["max_timestamp"] = max_timestamp.isoformat()
 
     statistics["skipped_lines"] = parser_statistics.skipped_lines
 

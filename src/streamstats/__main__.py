@@ -18,7 +18,7 @@ def create_parsers_for_cli() -> argparse.ArgumentParser:
     """
 
     parser = argparse.ArgumentParser(
-        prog="python -m streamstats", description="Stream Stats Error"
+        prog="python -m streamstats", description="Stream Stats csv/jsonl reader"
     )
     subparser = parser.add_subparsers(dest="command", required=True)
 
@@ -56,15 +56,12 @@ def configure_logging() -> None:
     input: None
     output: None
     """
-    logging.basicConfig(
-        level=logging.WARNING, format="{levelname}: {message}", style="{"
-    )
+    logging.basicConfig(level=logging.WARNING)
 
 
-def main() -> int:
+def main() -> None:
     configure_logging()
     args = create_parsers_for_cli().parse_args()
-    print(args)
 
     try:
         check_input_paths_of_files(args.input_data_files)
