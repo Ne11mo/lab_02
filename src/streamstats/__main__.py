@@ -13,7 +13,7 @@ from .report import write_report
 def create_parsers_for_cli() -> argparse.ArgumentParser:
     """
     This function creates parsers for command line interface with argparse library
-    Input: None
+    input: None
     :return parser for command line interface
     """
 
@@ -54,12 +54,18 @@ def configure_logging() -> None:
     """
     Configure root logger
     input: None
-    output: None
+    :return None
     """
     logging.basicConfig(level=logging.WARNING)
 
 
 def main() -> None:
+    """
+    Main function
+    input: None
+    :return None
+    """
+
     configure_logging()
     args = create_parsers_for_cli().parse_args()
 

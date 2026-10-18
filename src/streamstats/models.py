@@ -1,6 +1,6 @@
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
@@ -37,6 +37,12 @@ class ParserStatistics:
 
 
 def check_input_paths_of_files(input_data_files: Iterable[Path]) -> None:
+    """
+    This function checks that the input paths of files are valid.
+    :param input_data_files: Iterable[Path]
+    :return None
+    """
+
     for file_path in input_data_files:
         if not file_path.is_file():
             raise CLIConfigurationError(
@@ -47,6 +53,14 @@ def check_input_paths_of_files(input_data_files: Iterable[Path]) -> None:
 def check_and_create_timestamp(
     time: str, file_number: int, line_number: int
 ) -> datetime:
+    """
+    This function checks that the timestamp is valid and creates it.
+    :param time: str
+    :param file_number: int
+    :param line_number: int
+    :return: datetime
+    """
+
     try:
         timestamp = datetime.fromisoformat(
             time
@@ -58,13 +72,20 @@ def check_and_create_timestamp(
     if (
         timestamp.tzinfo is None
     ):  # если не указан часовой пояс, то приводим все к aware (с часовым поясом)
-        timestamp = timestamp.replace(tzinfo=timezone.utc)
+        timestamp = timestamp.replace(tzinfo=UTC)
     return timestamp
 
 
 def check_and_create_event_parser(
     raw: Mapping[str, Any], file_number: int, line_number: int
 ) -> Event:
+    """
+    This function checks that the event parser is valid and creates it.
+    :param raw: Mapping[str, Any]
+    :param file_number: int
+    :param line_number: int
+    :return Event
+    """
     for field in AVAILABLE_FIELDS:
         if field not in raw:
             raise InvalidEventError(

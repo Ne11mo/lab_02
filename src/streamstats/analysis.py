@@ -5,9 +5,15 @@ from .models import Event, Level, ParserStatistics
 
 
 def make_top_5_source(errors_sources: dict[str, int]) -> dict[str, int]:
+    """
+    This function makes top 5 errors sources
+    :param errors_sources: dict[str, int]
+    :return dict[str, int]
+    """
+
     top_5_source = []
-    for error_source in errors_sources:
-        top_5_source.append((error_source, errors_sources[error_source]))
+    for error_source, value in errors_sources.values():
+        top_5_source.append((error_source, value))
 
     top_5_source.sort(key=lambda x: (-x[1], x[0]))
 
@@ -20,6 +26,13 @@ def make_top_5_source(errors_sources: dict[str, int]) -> dict[str, int]:
 def start_analyze(
     events: Iterable[Event], parser_statistics: ParserStatistics
 ) -> dict[str, Any]:
+    """
+    This function analyzes events and makes statistics
+    :param events: Iterable[Event]
+    :param parser_statistics: ParserStatistics
+    :return dict[str, Any]
+    """
+
     statistics: dict = {
         "all_events_count": 0,
         "DEBUG": 0,

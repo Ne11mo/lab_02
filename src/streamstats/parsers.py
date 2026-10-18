@@ -1,9 +1,8 @@
 import csv
 import json
 import logging
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 from pathlib import Path
-from typing import Iterator
 
 from .errors import InvalidEventError, InvalidFormatError, StreamStatsError
 from .models import (
@@ -23,9 +22,9 @@ def start_csv_parser(
 ) -> Iterator[Event]:
     """
     This function parses the input csv files
-    :param parser_statistics:
-    :param input_data
-    :param is_skip_invalid
+    :param input_data: Iterable[Path]
+    :param is_skip_invalid: bool
+    :param parser_statistics: ParserStatistics
     :return Iterator[Event]
     """
 
@@ -86,9 +85,9 @@ def start_jsonl_parser(
 ) -> Iterator[Event]:
     """
     This function parses the input jsonl files
-    :param input_data:
-    :param is_skip_invalid:
-    :param parser_statistics:
+    :param input_data: Iterable[Path]
+    :param is_skip_invalid: bool
+    :param parser_statistics: ParserStatistics
     :return Iterator[Event]
     """
     for file_number, path in enumerate(input_data, start=1):
@@ -130,10 +129,10 @@ def start_parser_of_input_data(
 ) -> Iterator[Event]:
     """
     This function detected which parser the program need to use
-    :param parser_statistics:
-    :param input_data:
-    :param format_of_input_data:
-    :param is_skip_invalid:
+    :param input_data: Iterable[Path]
+    :param format_of_input_data: str
+    :param is_skip_invalid: bool
+    :param parser_statistics: ParserStatistics
     :return Iterator[Event]
     """
 

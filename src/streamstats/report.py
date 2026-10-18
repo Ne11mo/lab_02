@@ -1,14 +1,17 @@
 import json
-import sys
 from pathlib import Path
 from typing import Any
 
 
-def write_report(report: dict[str, Any], output_data_file: Path | None) -> None:
-    if output_data_file is None:
-        json.dump(report, sys.stdout, ensure_ascii=False, indent=2)
-        sys.stdout.write("\n")
-        return
+def write_report(
+    report: dict[str, Any], output_data_file: Path = Path("REPORT.json")
+) -> None:
+    """
+    This function writes the report into users file or REPORT.json
+    :param report: dict[str, Any]
+    :param output_data_file: Path
+    :return None
+    """
 
     with output_data_file.open("w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
