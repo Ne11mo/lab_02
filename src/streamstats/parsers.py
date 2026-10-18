@@ -1,7 +1,7 @@
 import csv
 import json
 import logging
-from collections.abc import Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from pathlib import Path
 
 from .errors import InvalidEventError, InvalidFormatError, StreamStatsError
@@ -14,7 +14,23 @@ from .models import (
 
 logger = logging.getLogger(__name__)
 
+choice_parser_function = Callable[
+    [Iterable[Path], bool, ParserStatistics], Iterator[Event]
+]
+FORMAT_PARSERS: dict[str, choice_parser_function] = {}
 
+
+def register_parser(
+    name: str,
+) -> Callable[[choice_parser_function], choice_parser_function]:
+    def decorator(parser_function: choice_parser_function) -> choice_parser_function:
+        FORMAT_PARSERS[name] = parser_function
+        return parser_function
+
+    return decorator
+
+
+@register_parser("csv")
 def start_csv_parser(
     input_data: Iterable[Path],
     is_skip_invalid: bool,
@@ -78,6 +94,7 @@ def start_csv_parser(
                 yield event
 
 
+@register_parser("jsonl")
 def start_jsonl_parser(
     input_data: Iterable[Path],
     is_skip_invalid: bool,
@@ -136,9 +153,10 @@ def start_parser_of_input_data(
     :return Iterator[Event]
     """
 
-    if format_of_input_data == "csv":
-        return start_csv_parser(input_data, is_skip_invalid, parser_statistics)
-    if format_of_input_data == "jsonl":
-        return start_jsonl_parser(input_data, is_skip_invalid, parser_statistics)
+    extension_input_files = format_of_input_data.strip().lower()
+    parser_function = FORMAT_PARSERS.get(extension_input_files)
 
-    raise InvalidFormatError(f"Неподдерживаемый формат: {format_of_input_data}")
+    if parser_function is None:
+        raise InvalidFormatError(f"Неподдерживаемый формат: {format_of_input_data}")
+
+    return parser_function(input_data, is_skip_invalid, parser_statistics)

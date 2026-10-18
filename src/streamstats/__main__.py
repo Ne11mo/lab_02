@@ -6,7 +6,7 @@ from pathlib import Path
 from .analysis import start_analyze
 from .errors import StreamStatsError
 from .models import ParserStatistics, check_input_paths_of_files
-from .parsers import start_parser_of_input_data
+from .parsers import FORMAT_PARSERS, start_parser_of_input_data
 from .report import write_report
 
 
@@ -34,6 +34,7 @@ def create_parsers_for_cli() -> argparse.ArgumentParser:
         "--format",
         dest="format_input_data",
         type=str,
+        choices=FORMAT_PARSERS.keys(),
         required=True,
         help="Input data format",
     )
