@@ -12,7 +12,7 @@ def make_top_5_source(errors_sources: dict[str, int]) -> dict[str, int]:
     """
 
     top_5_source = []
-    for error_source, value in errors_sources.values():
+    for error_source, value in errors_sources.items():
         top_5_source.append((error_source, value))
 
     top_5_source.sort(key=lambda x: (-x[1], x[0]))
