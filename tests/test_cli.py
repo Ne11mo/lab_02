@@ -23,6 +23,7 @@ def test_cli_csv(tmp_path):
             "--output",
             str(report_path),
         ],
+        check=False,
         capture_output=True,
         text=True,
     )
@@ -67,6 +68,7 @@ def test_cli_json(tmp_path):
             str(report_path),
             "--skip-invalid",
         ],
+        check=False,
         capture_output=True,
         text=True,
     )
