@@ -38,7 +38,11 @@ def create_parsers_for_cli() -> argparse.ArgumentParser:
         help="Input data format",
     )
     parser_analyze.add_argument(
-        "--output", dest="output_data_file", type=Path, default=None, help="Output data"
+        "--output",
+        dest="output_data_file",
+        type=Path,
+        default=Path("REPORT.json"),
+        help="Output data",
     )
     parser_analyze.add_argument(
         "--skip-invalid",

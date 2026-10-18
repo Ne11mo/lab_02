@@ -102,12 +102,7 @@ def check_and_create_event_parser(
                 f"Ошибка: в файле {file_number} в строке {line_number} поле {field} должно быть строкой"
             )
 
-    try:
-        timestamp = check_and_create_timestamp(
-            raw["timestamp"], file_number, line_number
-        )
-    except InvalidTimeMarkerError:
-        raise
+    timestamp = check_and_create_timestamp(raw["timestamp"], file_number, line_number)
 
     try:
         level = Level(raw["level"])

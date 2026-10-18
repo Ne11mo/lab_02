@@ -3,9 +3,7 @@ from pathlib import Path
 from typing import Any
 
 
-def write_report(
-    report: dict[str, Any], output_data_file: Path = Path("REPORT.json")
-) -> None:
+def write_report(report: dict[str, Any], output_data_file: Path) -> None:
     """
     This function writes the report into users file or REPORT.json
     :param report: dict[str, Any]

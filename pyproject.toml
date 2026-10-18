@@ -7,8 +7,16 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
-    "pre-commit (>=4.7.0,<5.0.0)"
+    "pre-commit (>=4.7.0,<5.0.0)",
+    "pytest (>=9.1.1,<10.0.0)"
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.poetry]
+packages = [{ include = "streamstats", from = "src" }]
 
 
 [build-system]
